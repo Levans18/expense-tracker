@@ -1,6 +1,10 @@
 server:
   port: 8080
 
+jwt:
+  secret: ThisIsASecretKeyForJWTThatShouldBeLongEnough1
+  expiration: 86400000
+
 spring:
   application:
     name: expense-tracker
