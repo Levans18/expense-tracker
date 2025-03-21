@@ -15,8 +15,17 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false)
     private String password;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    @Column(name = "verified")
+    private boolean verified = false;
 }

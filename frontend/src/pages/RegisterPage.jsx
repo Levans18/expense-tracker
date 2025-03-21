@@ -1,86 +1,77 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Link } from 'react-router-dom';
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [form, setForm] = useState({ email: '', username: '', password: '' });
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (password !== confirm) {
-      setError("Passwords don't match");
-      return;
-    }
-
     try {
-      await axios.post('http://localhost:8080/auth/register', {
-        username,
-        password,
+      const res = await fetch('http://localhost:8080/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
       });
 
-      setSuccess('Registered successfully! Redirecting to login...');
-      setTimeout(() => navigate('/login'), 2000);
-    } catch (err) {
-      console.error('Registration failed:', err);
-      if (err.response?.data) {
-        setError(err.response.data);
+      if (res.ok) {
+        navigate('/login');
       } else {
-        setError('Registration error');
+        alert('Registration failed. ' + res.body);
       }
+    } catch (err) {
+      console.error('Error registering:', err);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white rounded shadow-md p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create Account</h2>
-
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-        {success && <p className="text-green-600 text-sm mb-4">{success}</p>}
-
-        <form onSubmit={handleRegister} className="space-y-4">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+      <div className="bg-zinc-900 p-8 rounded-xl shadow-lg w-full max-w-md">
+        <Link to="/" className="absolute top-6 left-6 text-white hover:text-green-400 transition">
+          <ArrowBackIcon fontSize="large" />
+        </Link>
+        <h2 className="text-3xl font-bold text-green-400 mb-6 text-center">Create Account</h2>
+        <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
           <input
+            name="email"
+            type="text"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          <input
+            name="username"
             type="text"
             placeholder="Username"
-            className="w-full border p-2 rounded"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
+            value={form.username}
+            onChange={handleChange}
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
-
           <input
+            name="password"
             type="password"
             placeholder="Password"
-            className="w-full border p-2 rounded"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            value={form.password}
+            onChange={handleChange}
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           />
-
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full border p-2 rounded"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700 transition"
-          >
-            Register
+          <button className="bg-green-500 hover:bg-green-600 rounded-md py-2 font-semibold transition">
+            Sign Up
           </button>
         </form>
+        <p className="text-sm text-center text-gray-400 mt-4">
+          Already have an account?{' '}
+          <a href="/login" className="text-green-400 hover:underline">
+            Log in
+          </a>
+        </p>
       </div>
     </div>
   );

@@ -20,7 +20,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // If you're not using roles, return empty list
         return Collections.emptyList();
     }
 

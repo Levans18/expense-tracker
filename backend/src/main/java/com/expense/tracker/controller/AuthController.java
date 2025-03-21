@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import com.expense.tracker.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+import java.util.UUID;
 import com.expense.tracker.security.JwtUtil;
 import lombok.*;
 
@@ -55,13 +57,37 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Username already exists");
         }
 
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Email already exists");
+        }
+
+        String token = UUID.randomUUID().toString();
+
         User newUser = new User();
+        newUser.setEmail(request.getEmail());
         newUser.setUsername(request.getUsername());
         newUser.setPassword(passwordEncoder.encode(request.getPassword())); // hash the password
+        newUser.setVerificationToken(token);
+        newUser.setVerified(false);
 
         userRepository.save(newUser);
 
         return ResponseEntity.ok("User registered successfully");
+    }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyUser(@RequestParam("token") String token) {
+        Optional<User> userOpt = userRepository.findByVerificationToken(token);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Invalid or expired token");
+        }
+
+        User user = userOpt.get();
+        user.setVerified(true);
+        user.setVerificationToken(null); // Optional: Clear token
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Account verified successfully");
     }
 
     @GetMapping("/me")
@@ -70,12 +96,14 @@ public class AuthController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        return ResponseEntity.ok("Hello, " + authentication.getName());
+        return ResponseEntity.ok(userRepository.findByUsername(authentication.getName()).get());
     }
+    
 
     @Getter
     @Setter
     static class AuthRequest {
+        private String email;
         private String username;
         private String password;
     }

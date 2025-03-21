@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Link } from 'react-router-dom';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -14,7 +16,7 @@ export default function LoginPage() {
 
     try {
       const response = await axios.post('http://localhost:8080/auth/login', {
-        username,
+        identifier,
         password,
       });
 
@@ -28,38 +30,42 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
-      <div className="bg-white rounded shadow-md p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
-
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
+      <div className="bg-zinc-900 p-8 rounded-xl shadow-lg w-full max-w-md">
+        <Link to="/" className="absolute top-6 left-6 text-white hover:text-green-400 transition">
+          <ArrowBackIcon fontSize="large" />
+        </Link>
+        <h2 className="text-3xl font-bold text-green-400 mb-6 text-center">Login</h2>
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="flex flex-col space-y-4">
           <input
             type="text"
-            placeholder="Username"
-            className="w-full border p-2 rounded"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username or Email"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
             required
           />
 
           <input
             type="password"
             placeholder="Password"
-            className="w-full border p-2 rounded"
+            className="bg-zinc-800 border border-zinc-700 rounded-md px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-green-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700 transition"
-          >
-            Log In
+          <button className="bg-green-500 hover:bg-green-600 rounded-md py-2 font-semibold transition">
+            Sign In
           </button>
         </form>
+        <p className="text-sm text-center text-gray-400 mt-4">
+          Don't have an account yet?{' '}
+          <a href="/Register" className="text-green-400 hover:underline">
+            Create Account
+          </a>
+        </p>
       </div>
     </div>
   );
