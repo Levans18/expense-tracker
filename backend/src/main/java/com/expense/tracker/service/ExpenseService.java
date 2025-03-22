@@ -1,6 +1,7 @@
 package com.expense.tracker.service;
 
 import com.expense.tracker.model.Expense;
+import com.expense.tracker.model.User;
 import com.expense.tracker.repository.ExpenseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,10 +15,15 @@ public class ExpenseService {
     @Autowired
     private ExpenseRepository expenseRepository;
 
-    public List<Expense> getAllExpenses() {
-        return expenseRepository.findAll();
+    public List<Expense> getExpensesByUser(User user) {
+        return expenseRepository.findByUser(user);
     }
-
+    
+    public Expense createExpenseForUser(Expense expense, User user) {
+        expense.setUser(user);
+        return expenseRepository.save(expense);
+    }
+    
     public Optional<Expense> getExpenseById(Long id) {
         return expenseRepository.findById(id);
     }

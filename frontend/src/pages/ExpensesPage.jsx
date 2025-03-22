@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 import { Fab, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -6,26 +8,64 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
-
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ description: '', amount: '', date: '' });
+  const [form, setForm] = useState({ description: '', category: '', amount: '', date: '' });
+
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    axios.get('/backend/api/expenses', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => setExpenses(res.data))
+      .catch(err => {
+        console.error('Failed to fetch expenses:', err);
+        navigate('/dashboard');
+      });
+  }, [navigate, token]);
 
   const handleAddExpense = () => {
+    if (!token) return;
     const newExpense = {
-      id: expenses.length + 1,
-      description: form.description,
+      name: form.name,
+      category: form.category,
       amount: parseFloat(form.amount),
       date: form.date,
     };
-    setExpenses([newExpense, ...expenses]);
-    setForm({ description: '', amount: '', date: '' });
-    setShowModal(false);
+
+    axios.post('/backend/api/expenses', newExpense, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => {
+        setExpenses([res.data, ...expenses]);
+        setForm({ name: '', category: '', amount: '', date: '' });
+        setShowModal(false);
+      })
+      .catch(err => console.error('Failed to add expense:', err));
   };
 
   const handleDeleteExpense = (id) => {
-    setExpenses(expenses.filter(expense => expense.id !== id));
+    if (!token) return;
+    axios.delete(`/backend/api/expenses/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(() => {
+        setExpenses(expenses.filter(expense => expense.id !== id));
+      })
+      .catch(err => console.error('Failed to delete expense:', err));
   };
-
   return (
     <div className="min-h-screen bg-black text-white px-6 py-8">
       <h1 className="text-3xl font-bold text-[#00ff94] mb-6">Expenses</h1>
@@ -34,7 +74,8 @@ function ExpensesPage() {
         <table className="w-full text-left">
           <thead>
             <tr className="text-gray-400 text-sm">
-              <th className="py-2">Description</th>
+              <th className="py-2">Name</th>
+              <th className="py-2">Category</th>
               <th className="py-2">Amount</th>
               <th className="py-2">Date</th>
               <th className="py-2">Actions</th>
@@ -43,7 +84,8 @@ function ExpensesPage() {
           <tbody>
             {expenses.map((expense) => (
               <tr key={expense.id} className="border-t border-[#222] hover:bg-[#1a1a1a]">
-                <td className="py-3 font-medium">{expense.description}</td>
+                <td className="py-3 font-medium">{expense.name}</td>
+                <td className="py-3">{expense.category}</td>
                 <td className="py-3 text-[#00ff94]">${expense.amount.toFixed(2)}</td>
                 <td className="py-3 text-sm text-gray-400">{expense.date}</td>
                 <td className="py-3">
@@ -83,10 +125,17 @@ function ExpensesPage() {
             <div className="space-y-4">
               <input
                 type="text"
-                placeholder="Description"
+                placeholder="Name"
                 className="w-full p-2 rounded bg-[#1a1a1a] border border-[#333] focus:outline-none"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Category"
+                className="w-full p-2 rounded bg-[#1a1a1a] border border-[#333] focus:outline-none"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
               />
               <input
                 type="number"
