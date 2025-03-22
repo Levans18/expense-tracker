@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import { Fab, IconButton } from '@mui/material';
+import { Fab, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 function ExpensesPage() {
-  const [expenses, setExpenses] = useState([
-    { id: 1, description: 'Groceries', amount: 45.25, date: '2025-03-19' },
-    { id: 2, description: 'Uber Ride', amount: 12.50, date: '2025-03-18' },
-    { id: 3, description: 'Coffee', amount: 4.75, date: '2025-03-18' },
-  ]);
+  const [expenses, setExpenses] = useState([]);
 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ description: '', amount: '', date: '' });
@@ -25,6 +22,10 @@ function ExpensesPage() {
     setShowModal(false);
   };
 
+  const handleDeleteExpense = (id) => {
+    setExpenses(expenses.filter(expense => expense.id !== id));
+  };
+
   return (
     <div className="min-h-screen bg-black text-white px-6 py-8">
       <h1 className="text-3xl font-bold text-[#00ff94] mb-6">Expenses</h1>
@@ -36,6 +37,7 @@ function ExpensesPage() {
               <th className="py-2">Description</th>
               <th className="py-2">Amount</th>
               <th className="py-2">Date</th>
+              <th className="py-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -44,6 +46,13 @@ function ExpensesPage() {
                 <td className="py-3 font-medium">{expense.description}</td>
                 <td className="py-3 text-[#00ff94]">${expense.amount.toFixed(2)}</td>
                 <td className="py-3 text-sm text-gray-400">{expense.date}</td>
+                <td className="py-3">
+                  <Tooltip title="Delete">
+                    <IconButton onClick={() => handleDeleteExpense(expense.id)} sx={{ color: '#f87171' }}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </td>
               </tr>
             ))}
           </tbody>
