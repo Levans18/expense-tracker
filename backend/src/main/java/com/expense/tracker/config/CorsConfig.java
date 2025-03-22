@@ -12,7 +12,7 @@ public class CorsConfig implements WebMvcConfigurer{
             .allowedOrigins(
                 "http://localhost:3000",
                 "https://expense-tracker-github-hkcmdtbra4aacach.canadacentral-01.azurewebsites.net",
-                "https://your-vercel-frontend.vercel.app"
+                "https://expense-tracker-xi-beige.vercel.app/"
             )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")

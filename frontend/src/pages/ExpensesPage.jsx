@@ -10,7 +10,7 @@ export default function ExpensesPage() {
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/expenses', {
+        const response = await axios.get('/backend/api/expenses', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

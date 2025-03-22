@@ -15,7 +15,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8080/auth/login', {
+      const response = await axios.post('/backend/auth/login', {
         identifier,
         password,
       });

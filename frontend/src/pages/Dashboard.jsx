@@ -28,7 +28,7 @@ function Dashboard() {
       return;
     }
 
-    axios.get('http://localhost:8080/auth/me', {
+    axios.get('/backend/auth/me', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
