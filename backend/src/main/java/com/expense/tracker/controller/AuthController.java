@@ -80,7 +80,7 @@ public class AuthController {
 
         userRepository.save(newUser);
 
-        String verificationLink = "http://localhost:3000/verify?token=" + token;
+        String verificationLink = "https://expense-tracker-xi-beige.vercel.app/verify?token=" + token;
 
         try {
             emailService.sendVerificationEmail(
