@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Fab, IconButton } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 
 function ExpensesPage() {
   const [expenses, setExpenses] = useState([
@@ -49,23 +51,24 @@ function ExpensesPage() {
       </div>
 
       {/* Floating Add Button */}
-      <button
-        className="fixed bottom-6 right-6 bg-[#00ff94] text-black p-4 rounded-full shadow-lg hover:brightness-110 transition"
+      <Fab
+        color="primary"
         onClick={() => setShowModal(true)}
+        sx={{ position: 'fixed', bottom: 24, right: 24, backgroundColor: '#00ff94', color: 'black', '&:hover': { backgroundColor: '#00e283' } }}
       >
-        <Plus className="w-6 h-6" />
-      </button>
+        <AddIcon />
+      </Fab>
 
       {/* Add Expense Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
           <div className="bg-[#111] p-6 rounded-2xl w-full max-w-md shadow-lg text-white relative">
-            <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            <IconButton
               onClick={() => setShowModal(false)}
+              sx={{ position: 'absolute', top: 16, right: 16, color: '#888' }}
             >
-              <X className="w-5 h-5" />
-            </button>
+              <CloseIcon />
+            </IconButton>
             <h2 className="text-2xl font-semibold text-[#00ff94] mb-4">Add Expense</h2>
 
             <div className="space-y-4">
