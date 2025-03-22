@@ -1,9 +1,23 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  AppBar,
+  Avatar,
+  Box,
+  Container,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+  Tooltip,
+  Button,
+} from '@mui/material';
 
-export default function Dashboard() {
+function Dashboard() {
   const [userData, setUserData] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem('token');
@@ -19,29 +33,90 @@ export default function Dashboard() {
         Authorization: `Bearer ${token}`,
       },
     })
-    .then(res => {
-      setUserData(res.data); // change as needed based on your API
-    })
-    .catch(err => {
-      console.error('Unauthorized or error loading data:', err);
-      navigate('/login');
-    });
+      .then(res => setUserData(res.data))
+      .catch(err => {
+        console.error('Unauthorized or error loading user:', err);
+        navigate('/login');
+      });
   }, [navigate, token]);
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-3xl mx-auto bg-white rounded shadow-md p-8">
-        <h1 className="text-2xl font-bold mb-4">Welcome to your Dashboard</h1>
+  const getInitials = (name) => {
+    if (!name) return '';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
 
-        {userData ? (
-          <div>
-            <p className="mb-2">Hello, {userData.username || 'User'}!</p>
-            {/* Replace/add more components here for expense summary, graphs, recent activity, etc. */}
-          </div>
-        ) : (
-          <p>Loading your data...</p>
-        )}
-      </div>
-    </div>
+  const handleOpenMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+  return (
+    <>
+      <AppBar position="static" color="primary">
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography variant="h6" noWrap component="div">
+            Expense Tracker Dashboard
+          </Typography>
+
+          {userData && (
+            <Box>
+              <Tooltip title="User Menu">
+                <IconButton onClick={handleOpenMenu} sx={{ p: 0 }}>
+                  <Avatar
+                    src={userData.profileImageUrl}
+                    alt={userData.username}
+                  >
+                    {getInitials(userData.username)}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+              >
+                <MenuItem disabled>
+                  Signed in as <strong style={{ marginLeft: '4px' }}>{userData.username}</strong>
+                </MenuItem>
+                <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              </Menu>
+            </Box>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Box sx={{ backgroundColor: '#fff', p: 4, borderRadius: 2, boxShadow: 2 }}>
+          <Typography variant="h5" gutterBottom>
+            Welcome back, {userData?.username || ''}!
+          </Typography>
+
+          <Typography variant="body1" mb={2}>
+            Ready to track your expenses? Click below to get started.
+          </Typography>
+
+          <Button
+            variant="contained"
+            component={Link}
+            to="/expenses"
+            color="secondary"
+          >
+            Go to Expense Tracker
+          </Button>
+        </Box>
+      </Container>
+    </>
   );
 }
+
+export default Dashboard;

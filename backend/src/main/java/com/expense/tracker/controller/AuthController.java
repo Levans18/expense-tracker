@@ -1,5 +1,7 @@
 package com.expense.tracker.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,14 +14,20 @@ import org.springframework.web.bind.annotation.*;
 import com.expense.tracker.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 import com.expense.tracker.security.JwtUtil;
+import com.expense.tracker.service.EmailService;
+
 import lombok.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
+    @Autowired
+    private EmailService emailService;
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -72,22 +80,40 @@ public class AuthController {
 
         userRepository.save(newUser);
 
-        return ResponseEntity.ok("User registered successfully");
+        String verificationLink = "http://localhost:3000/verify?token=" + token;
+
+        try {
+            emailService.sendVerificationEmail(
+                newUser.getEmail(), // assuming this is the email
+                "Verify your ExpenseApp account",
+                "Click the link to verify your account: " + verificationLink
+            );
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to send verification email.");
+        }
+
+        return ResponseEntity.ok("User registered successfully. Please check your email to verify your account.");
     }
 
     @GetMapping("/verify")
     public ResponseEntity<?> verifyUser(@RequestParam("token") String token) {
         Optional<User> userOpt = userRepository.findByVerificationToken(token);
+
         if (userOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Invalid or expired token");
         }
 
         User user = userOpt.get();
+
+        if (user.isVerified()) {
+            return ResponseEntity.ok("Account already verified.");
+        }
+
         user.setVerified(true);
         user.setVerificationToken(null); // Optional: Clear token
         userRepository.save(user);
 
-        return ResponseEntity.ok("Account verified successfully");
+        return ResponseEntity.ok("Email verified successfully. You can now log in.");
     }
 
     @GetMapping("/me")
