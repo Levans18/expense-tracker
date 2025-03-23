@@ -15,11 +15,6 @@ function ExpensesPage() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     axios.get('/backend/api/expenses', {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -55,7 +50,6 @@ function ExpensesPage() {
   };
 
   const handleDeleteExpense = (id) => {
-    if (!token) return;
     axios.delete(`/backend/api/expenses/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
