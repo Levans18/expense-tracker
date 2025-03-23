@@ -82,7 +82,11 @@ function ExpensesPage() {
             </tr>
           </thead>
           <tbody>
-            {expenses.map((expense) => (
+            { expenses.length === 0 
+            ? 
+            <p>No Expenses To Load</p>
+            :
+            expenses.map((expense) => (
               <tr key={expense.id} className="border-t border-[#222] hover:bg-[#1a1a1a]">
                 <td className="py-3 font-medium">{expense.name}</td>
                 <td className="py-3">{expense.category}</td>
