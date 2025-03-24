@@ -13,16 +13,14 @@ import java.io.IOException;
 @Service
 public class EmailService {
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
-
     public void sendVerificationEmail(String toEmail, String subject, String contentText) throws IOException {
         Email from = new Email("expensetracker.github@gmail.com", "Expense Tracker (No Reply)");
         Email to = new Email(toEmail);
         Content content = new Content("text/plain", contentText);
         Mail mail = new Mail(from, subject, to, content);
 
-        SendGrid sg = new SendGrid(sendGridApiKey);
+        String apiKey = System.getenv("SENDGRID_API_KEY");
+        SendGrid sg = new SendGrid(apiKey);
         Request request = new Request();
 
         try {
