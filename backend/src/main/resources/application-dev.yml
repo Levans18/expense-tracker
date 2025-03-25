@@ -1,5 +1,7 @@
 spring:
   config:
+    activate:
+      on-profile: dev
     import: optional:env.properties
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=ExpenseTracker;encrypt=true;trustServerCertificate=true
