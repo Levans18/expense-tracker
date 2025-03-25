@@ -14,9 +14,6 @@ spring:
     init:
       mode: never
 
-server:
-  port: 8080
-
 # JWT configuration
 jwt:
   secret: ${JWT_SECRET}  # Read from Azure App Settings or .env
