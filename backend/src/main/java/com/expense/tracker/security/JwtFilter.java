@@ -30,12 +30,15 @@ public class JwtFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        logger.info("Checking shouldNotFilter for path: {}", path);
-        return path.equals("/auth/register") || path.equals("/auth/login");
-    }
+@Override
+protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    String path = request.getServletPath();
+    return path.equals("/auth/login")
+        || path.equals("/auth/register")
+        || path.equals("/")
+        || path.startsWith("/robots")
+        || path.startsWith("/admin/host/status");
+}
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
