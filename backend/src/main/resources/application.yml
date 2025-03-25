@@ -1,5 +1,9 @@
-jpa:
-  open-in-view: false
+spring:
+  profiles:
+    active: dev # default to dev unless overridden
+
+  jpa:
+    open-in-view: false
 
 server:
   error:
