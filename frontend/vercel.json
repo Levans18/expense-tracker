@@ -1,7 +1,7 @@
 {
     "rewrites": [
       {
-        "source": "/backend/(.*)",
+        "source": "/prod/(.*)",
         "destination": "https://expense-tracker-github-hkcmdtbra4aacach.canadacentral-01.azurewebsites.net/api/$1"
       }
     ]

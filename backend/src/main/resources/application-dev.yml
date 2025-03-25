@@ -1,0 +1,40 @@
+spring:
+  config:
+    import: optional:env.properties
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=ExpenseTracker;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: ${DB_PASS:yourLocalDevPasswordHere}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # Creates/updates tables automatically
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  sql:
+    init:
+      mode: always
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+
+# JWT configuration
+jwt:
+  secret: ${JWT_SECRET}  # Read from Azure App Settings or .env
+  expiration: 86400000   # 1 day in ms
+
+# SendGrid configuration
+sendgrid:
+  api:
+    key: ${SENDGRID_API_KEY}
+
+app:
+  client:
+    url: http://localhost:3000
+  api:
+    url: http://localhost:8080

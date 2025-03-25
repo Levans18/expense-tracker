@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://<your-server-name>.database.windows.net:1433;databaseName=ExpenseTracker;encrypt=true;trustServerCertificate=false
+    username: <your-username>@<your-server-name>
+    password: ${DB_PASS}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Never auto-create tables in production
+    show-sql: false
+
+  sql:
+    init:
+      mode: never
+
+server:
+  port: 8080
+
+# JWT configuration
+jwt:
+  secret: ${JWT_SECRET}  # Read from Azure App Settings or .env
+  expiration: 86400000   # 1 day in ms
+
+# SendGrid configuration
+sendgrid:
+  api:
+    key: ${SENDGRID_API_KEY}
+
+app:
+  client:
+    url: https://expense-tracker-xi-beige.vercel.app
+  api:
+    url: https://expense-tracker-github-hkcmdtbra4aacach.canadacentral-01.azurewebsites.net
