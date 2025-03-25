@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { API_BASE_URL } from '../services/api'
 
 function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -8,7 +9,7 @@ function Dashboard() {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    axios.get('/backend/auth/me', {
+    axios.get(`${API_BASE_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

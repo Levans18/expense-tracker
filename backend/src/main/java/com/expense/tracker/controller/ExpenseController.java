@@ -2,13 +2,15 @@ package com.expense.tracker.controller;
 
 import com.expense.tracker.model.Expense;
 import com.expense.tracker.model.User;
+import com.expense.tracker.security.CustomUserDetails;
 import com.expense.tracker.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/expenses")
 public class ExpenseController {
@@ -22,13 +24,18 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public Expense createExpense(@RequestBody Expense expense, @AuthenticationPrincipal User user) {
-        return expenseService.createExpenseForUser(expense, user);
+    public ResponseEntity<Expense> createExpense(@RequestBody Expense expense,
+                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser(); // unwrap the real JPA user
+        Expense saved = expenseService.createExpenseForUser(expense, user);
+        return ResponseEntity.ok(saved);
     }
 
     @GetMapping("/{id}")
-    public Optional<Expense> getExpenseById(@PathVariable Long id) {
-        return expenseService.getExpenseById(id);
+    public ResponseEntity<Expense> getExpenseById(@PathVariable Long id) {
+        return expenseService.getExpenseById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")

@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Link } from 'react-router-dom';
+import Alert from '@mui/material/Alert';
+import { API_BASE_URL } from '../services/api'
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ email: '', username: '', password: '' });
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -13,20 +16,24 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage(''); // clear previous errors
+  
     try {
-      const res = await fetch('/backend/auth/register', {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-
+  
       if (res.ok) {
         navigate('/login');
       } else {
-        alert('Registration failed. ' + res.body);
+        const errorText = await res.text();
+        setErrorMessage(errorText || 'Registration failed.');
       }
     } catch (err) {
       console.error('Error registering:', err);
+      setErrorMessage('Something went wrong. Please try again.');
     }
   };
 
@@ -37,6 +44,11 @@ export default function RegisterPage() {
           <ArrowBackIcon fontSize="large" />
         </Link>
         <h2 className="text-3xl font-bold text-green-400 mb-6 text-center">Create Account</h2>
+        {errorMessage && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
         <form className="flex flex-col space-y-4" onSubmit={handleSubmit}>
           <input
             name="email"

@@ -1,86 +1,88 @@
 package com.expense.tracker.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import com.expense.tracker.model.User;
-
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import com.expense.tracker.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
 import com.expense.tracker.security.JwtUtil;
 import com.expense.tracker.service.EmailService;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.AllArgsConstructor;
 
-import lombok.*;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+    
+    @Value("${app.api.url}")
+    private String apiBaseUrl;
+
+    @Value("${app.client.url}")
+    private String clientBaseUrl;
 
     @Autowired
     private EmailService emailService;
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtil jwtUtil,
-                          UserDetailsService userDetailsService,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
-        // 1. Look up the user by username
-        Optional<User> optionalUser = userRepository.findByUsername(request.getUsername());
-        if (optionalUser.isEmpty()) {
+    public ResponseEntity<?> login(@RequestBody LoginAuthRequest request) {
+
+        String identifier = request.getIdentifier(); // username or email
+        String password = request.getPassword();
+    
+        // Lookup by email or username
+        Optional<User> optionalUser = identifier.contains("@")
+                ? userRepository.findByEmail(identifier)
+                : userRepository.findByUsername(identifier);
+    
+        if (optionalUser.isEmpty())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        }
-
+    
         User user = optionalUser.get();
-
-        // 2. Check if email is verified
-        if (!user.isVerified()) {
+    
+        if (!user.isVerified())
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email not verified");
-        }
-
-        // 3. Try to authenticate
+    
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), password)
             );
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
-
-        // 4. Generate token and return
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String token = jwtUtil.generateToken(userDetails.getUsername());
-
+    
+        String token = jwtUtil.generateToken(user.getUsername());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterAuthRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
@@ -100,7 +102,7 @@ public class AuthController {
 
         userRepository.save(newUser);
 
-        String verificationLink = "https://expense-tracker-xi-beige.vercel.app/verify?token=" + token;
+        String verificationLink = apiBaseUrl + "/auth/verify?token=" + token;
 
         try {
             emailService.sendVerificationEmail(
@@ -120,20 +122,29 @@ public class AuthController {
         Optional<User> userOpt = userRepository.findByVerificationToken(token);
 
         if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("Invalid or expired token");
+            // Redirect to frontend error page
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", clientBaseUrl + "/verify?status=invalid")
+                    .build();
         }
 
         User user = userOpt.get();
 
         if (user.isVerified()) {
-            return ResponseEntity.ok("Account already verified.");
+            // Redirect to frontend already-verified page
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header("Location", clientBaseUrl + "/verify?status=already")
+                    .build();
         }
 
         user.setVerified(true);
-        user.setVerificationToken(null); // Optional: Clear token
+        user.setVerificationToken(null);
         userRepository.save(user);
 
-        return ResponseEntity.ok("Email verified successfully. You can now log in.");
+        // Redirect to frontend success page
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", clientBaseUrl + "/verify?status=success")
+                .build();
     }
 
     @GetMapping("/me")
@@ -142,13 +153,26 @@ public class AuthController {
             return ResponseEntity.status(401).body("Unauthorized");
         }
 
-        return ResponseEntity.ok(userRepository.findByUsername(authentication.getName()).get());
+        Optional<User> user = userRepository.findByUsername(authentication.getName());
+
+        if (user.isPresent()) {
+            return ResponseEntity.ok(user.get());
+        } else {
+            return ResponseEntity.status(404).body("User not found");
+        }
     }
     
 
     @Getter
     @Setter
-    static class AuthRequest {
+    static class LoginAuthRequest {
+        private String identifier;
+        private String password;
+    }
+
+    @Getter
+    @Setter
+    static class RegisterAuthRequest {
         private String email;
         private String username;
         private String password;

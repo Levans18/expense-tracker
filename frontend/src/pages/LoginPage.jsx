@@ -3,19 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../services/api'
+import Alert from '@mui/material/Alert';
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
+    setErrorMessage('');
 
     try {
-      const response = await axios.post('/backend/auth/login', {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
         identifier,
         password,
       });
@@ -25,7 +27,13 @@ export default function LoginPage() {
       navigate('/dashboard');
     } catch (err) {
       console.error('Login failed:', err);
-      setError('Invalid username or password');
+
+      const errorMessage =
+        err.response?.data && typeof err.response.data === 'string'
+          ? err.response.data
+          : 'Login Failed: Check Logs';
+
+          setErrorMessage(errorMessage);
     }
   };
 
@@ -36,7 +44,11 @@ export default function LoginPage() {
           <ArrowBackIcon fontSize="large" />
         </Link>
         <h2 className="text-3xl font-bold text-green-400 mb-6 text-center">Login</h2>
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+                {errorMessage && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {errorMessage}
+                  </Alert>
+                )}
         <form onSubmit={handleLogin} className="flex flex-col space-y-4">
           <input
             type="text"
