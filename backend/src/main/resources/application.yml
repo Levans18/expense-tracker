@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev # default to dev unless overridden
+    active: prod # default to prod unless overridden
 
   jpa:
     open-in-view: false
