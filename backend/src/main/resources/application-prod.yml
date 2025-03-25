@@ -1,4 +1,8 @@
 spring:
+  config:
+    activate:
+      on-profile: prod
+      
   datasource:
     url: jdbc:sqlserver://expensetracker-sql.database.windows.net:1433;database=expense-tracker-db;encrypt=true;trustServerCertificate=false;loginTimeout=30;
     username: sqladmin@expensetracker-sql
