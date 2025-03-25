@@ -3,4 +3,4 @@ const isLocalhost =
 
     export const API_BASE_URL = isLocalhost
     ? "http://localhost:8080"
-    : "/prod"; // This gets rewritten by vercel.json in prod
+    : "https://expense-tracker-github-hkcmdtbra4aacach.canadacentral-01.azurewebsites.net";
