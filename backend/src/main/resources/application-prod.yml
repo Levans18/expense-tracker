@@ -9,10 +9,13 @@ spring:
     password: ${DB_PASS}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
-  jpa:
+  jjpa:
     hibernate:
-      ddl-auto: validate # Never auto-create tables in production
+      ddl-auto: validate
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
 
   sql:
     init:
