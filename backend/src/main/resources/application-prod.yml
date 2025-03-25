@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:sqlserver://<your-server-name>.database.windows.net:1433;databaseName=ExpenseTracker;encrypt=true;trustServerCertificate=false
-    username: <your-username>@<your-server-name>
+    url: jdbc:sqlserver://expensetracker-sql.database.windows.net:1433;database=expense-tracker-db;encrypt=true;trustServerCertificate=false;loginTimeout=30;
+    username: sqladmin@expensetracker-sql
     password: ${DB_PASS}
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
