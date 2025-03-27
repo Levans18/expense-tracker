@@ -19,7 +19,8 @@ public class ExpenseController {
     private ExpenseService expenseService;
 
     @GetMapping
-    public List<Expense> getAllExpenses(@AuthenticationPrincipal User user) {
+    public List<Expense> getAllExpenses(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
         return expenseService.getExpensesByUser(user);
     }
 

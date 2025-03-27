@@ -13,7 +13,7 @@ function ExpensesPage() {
   const [showHint, setShowHint] = useState(false);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ description: '', category: '', amount: '', date: '' });
+  const [form, setForm] = useState({ name: '', category: '', amount: '', date: '' });
 
   const token = localStorage.getItem('token');
 

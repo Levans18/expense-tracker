@@ -30,7 +30,9 @@ public class ExpenseService {
         .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         expense.setUser(persistentUser);
-        return expenseRepository.save(expense);
+        Expense saved = expenseRepository.save(expense);
+        System.out.println("Saved expense: " + saved);
+        return saved;
     }
     
     public Optional<Expense> getExpenseById(Long id) {
