@@ -26,7 +26,7 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<Expense> createExpense(@RequestBody Expense expense,
-                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser(); // unwrap the real JPA user
         Expense saved = expenseService.createExpenseForUser(expense, user);
         return ResponseEntity.ok(saved);
@@ -40,8 +40,12 @@ public class ExpenseController {
     }
 
     @PutMapping("/{id}")
-    public Expense updateExpense(@PathVariable Long id, @RequestBody Expense expense) {
-        return expenseService.updateExpense(id, expense);
+    public ResponseEntity<Expense> updateExpense(@PathVariable Long id, 
+                                                 @RequestBody Expense expense, 
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        Expense updated = expenseService.updateExpenseForUser(id, expense, user);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")

@@ -43,13 +43,20 @@ public class ExpenseService {
         return expenseRepository.save(expense);
     }
 
-    public Expense updateExpense(Long id, Expense updatedExpense) {
-        return expenseRepository.findById(id).map(expense -> {
-            expense.setName(updatedExpense.getName());
-            expense.setCategory(updatedExpense.getCategory());
-            expense.setAmount(updatedExpense.getAmount());
-            return expenseRepository.save(expense);
-        }).orElseThrow(() -> new RuntimeException("Expense not found"));
+    public Expense updateExpenseForUser(Long id, Expense updatedExpense, User user) {
+        Expense existingExpense = expenseRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Expense not found"));
+    
+        if (!existingExpense.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("You are not authorized to update this expense");
+        }
+    
+        existingExpense.setName(updatedExpense.getName());
+        existingExpense.setCategory(updatedExpense.getCategory());
+        existingExpense.setAmount(updatedExpense.getAmount());
+        existingExpense.setDate(updatedExpense.getDate());
+    
+        return expenseRepository.save(existingExpense);
     }
 
     public void deleteExpense(Long id) {

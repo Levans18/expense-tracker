@@ -3,6 +3,7 @@ package com.expense.tracker.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
@@ -21,10 +22,16 @@ public class Expense {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(nullable = false)
     private String name;
-    private String category;
+
+    @Column(nullable = false)
     private Double amount;
 
     @JsonFormat(pattern = "yyyy-MM-dd") // ensures correct format for JSON
+    @Column(nullable = false)
     private LocalDate date;
+
+    @ManyToOne
+    private Category category;
 }

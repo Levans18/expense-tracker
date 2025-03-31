@@ -5,15 +5,20 @@ import { Fab, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CategorySelect from '../components/CategorySelect';
 import { API_BASE_URL } from '../services/api';
 
 function ExpensesPage() {
   const [expenses, setExpenses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [showHint, setShowHint] = useState(false);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', category: '', amount: '', date: '' });
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [form, setForm] = useState({ name: '', categoryId: '', amount: '', date: '' });
 
   const token = localStorage.getItem('token');
 
@@ -34,11 +39,32 @@ function ExpensesPage() {
       });
   }, [navigate, token]);
 
+  useEffect(() => {
+    axios
+      .get(`${API_BASE_URL}/api/categories`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => {
+        setCategories(res.data);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch categories:', err);
+      });
+  }, [token]);
+
   const handleAddExpense = () => {
     if (!token) return;
+
+    if (!form.name || !form.amount || !form.date || !form.categoryId) {
+      alert("All fields are required.");
+      return;
+    }
+
     const newExpense = {
       name: form.name,
-      category: form.category,
+      category: { id: parseInt(form.categoryId) },
       amount: parseFloat(form.amount),
       date: form.date,
     };
@@ -71,6 +97,36 @@ function ExpensesPage() {
         if (updatedExpenses.length === 0) setShowHint(true);
       })
       .catch((err) => console.error('Failed to delete expense:', err));
+  };
+
+  const handleUpdateExpense = async () => {
+    const { name, amount, date, category } = editingExpense;
+
+    if (!name || !amount || !date || !category) {
+      alert("All fields are required.");
+      return;
+    }
+    
+    const res = await fetch(`${API_BASE_URL}/api/expenses/${editingExpense.id}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editingExpense),
+      credentials: 'include',
+    });
+  
+    if (res.ok) {
+      const updated = await res.json();
+      // Option 1: Replace it in local state
+      setExpenses((prev) =>
+        prev.map((exp) => (exp.id === updated.id ? updated : exp))
+      );
+      setShowEditModal(false);
+    } else {
+      console.error('Failed to update expense');
+    }
   };
 
   return (
@@ -108,10 +164,19 @@ function ExpensesPage() {
               expenses.map((expense) => (
                 <tr key={expense.id} className="border-t border-[#222] hover:bg-[#1a1a1a]">
                   <td className="py-3 pl-4 font-medium">{expense.name}</td> {/* <-- Padding here too */}
-                  <td className="py-3">{expense.category}</td>
+                  <td className="py-3">{expense.category?.name}</td>
                   <td className="py-3 text-[#00ff94]">${expense.amount.toFixed(2)}</td>
                   <td className="py-3 text-sm text-gray-400">{expense.date}</td>
                   <td className="py-3">
+                    <Tooltip title="Edit">
+                      <IconButton onClick={() => 
+                        {setShowEditModal(true); 
+                        setEditingExpense(expense);
+                        }} 
+                        sx={{ color: '#f87171' }}>
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
                     <Tooltip title="Delete">
                       <IconButton onClick={() => handleDeleteExpense(expense.id)} sx={{ color: '#f87171' }}>
                         <DeleteIcon />
@@ -168,12 +233,10 @@ function ExpensesPage() {
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
-              <input
-                type="text"
-                placeholder="Category"
-                className="w-full p-2 rounded bg-[#1a1a1a] border border-[#333] focus:outline-none"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              <CategorySelect
+                value={form.categoryId}
+                onChange={(id) => setForm({ ...form, categoryId: id })}
+                token={token}
               />
               <input
                 type="number"
@@ -198,6 +261,63 @@ function ExpensesPage() {
           </div>
         </div>
       )}
+      
+      {showEditModal && editingExpense && (
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="bg-[#111] p-6 rounded-2xl w-full max-w-md shadow-lg text-white relative">
+          <IconButton
+            onClick={() => setShowEditModal(false)}
+            sx={{ position: 'absolute', top: 16, right: 16, color: '#888' }}
+          >
+            <CloseIcon />
+          </IconButton>
+          <h2 className="text-2xl font-semibold text-[#00ff94] mb-4">Edit Expense</h2>
+
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Name"
+              className="w-full p-2 rounded bg-[#1a1a1a] border border-[#333] focus:outline-none"
+              value={editingExpense.name}
+              onChange={(e) =>
+                setEditingExpense({ ...editingExpense, name: e.target.value })
+              }
+            />
+            <CategorySelect
+              value={editingExpense.category?.id}
+              onChange={(id) => {
+                const fullCat = categories.find((c) => c.id === id);
+                setEditingExpense({ ...editingExpense, category: fullCat });
+              }}
+              token={token}
+            />
+            <input
+              type="number"
+              placeholder="Amount"
+              className="w-full p-2 rounded bg-[#1a1a1a] border border-[#333] focus:outline-none"
+              value={editingExpense.amount}
+              onChange={(e) =>
+                setEditingExpense({ ...editingExpense, amount: e.target.value })
+              }
+            />
+            <input
+              type="date"
+              className="w-full p-2 rounded bg-[#1a1a1a] border border-[#333] focus:outline-none"
+              value={editingExpense.date}
+              onChange={(e) =>
+                setEditingExpense({ ...editingExpense, date: e.target.value })
+              }
+            />
+            <button
+              className="w-full bg-[#00ff94] text-black font-semibold py-2 rounded-xl hover:brightness-110 transition"
+              onClick={handleUpdateExpense}
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
