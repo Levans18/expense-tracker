@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpenseService {
@@ -61,5 +64,18 @@ public class ExpenseService {
 
     public void deleteExpense(Long id) {
         expenseRepository.deleteById(id);
+    }
+
+    public Map<String, Double> getMonthlyTotalsByCategory(User user){
+        LocalDate firstDayOfMonth = LocalDate.now().withDayOfMonth(1);
+        LocalDate lastDayOfMonth = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
+
+        List<Expense> expenses = expenseRepository.findByUserAndDateBetween(user, firstDayOfMonth, lastDayOfMonth);
+
+        return expenses.stream()
+                .collect(Collectors.groupingBy(
+                    e -> e.getCategory().getName(),
+                    Collectors.summingDouble(Expense::getAmount)
+                ));
     }
 }

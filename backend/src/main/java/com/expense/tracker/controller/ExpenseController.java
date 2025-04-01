@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -18,18 +19,23 @@ public class ExpenseController {
     @Autowired
     private ExpenseService expenseService;
 
-    @GetMapping
-    public List<Expense> getAllExpenses(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        User user = userDetails.getUser();
-        return expenseService.getExpensesByUser(user);
-    }
-
     @PostMapping
     public ResponseEntity<Expense> createExpense(@RequestBody Expense expense,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         User user = userDetails.getUser(); // unwrap the real JPA user
         Expense saved = expenseService.createExpenseForUser(expense, user);
         return ResponseEntity.ok(saved);
+    }
+
+    @GetMapping()
+    public List<Expense> getAllExpenses(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        User user = userDetails.getUser();
+        return expenseService.getExpensesByUser(user);
+    }
+
+    @GetMapping("/month-category-summary")
+    public Map<String, Double> getMonthlyCategorySummary(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return expenseService.getMonthlyTotalsByCategory(userDetails.getUser());
     }
 
     @GetMapping("/{id}")
